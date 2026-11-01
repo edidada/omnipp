@@ -33,7 +33,7 @@ jobs:
         run: |
           export PATH="$PWD/build/src/Debug:$PATH"
           command -v ogrep
-          ./scripts/test_cli.sh
+          bash ./scripts/test_cli.sh
 
       - name: Upload CLI artifact
         if: always()
