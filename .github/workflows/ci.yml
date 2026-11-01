@@ -20,7 +20,7 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends             cmake ninja-build gcc-16 g++-16 make pkg-config bison flex             ragel file python3 libssl-dev zlib1g-dev
+          sudo apt-get install -y --no-install-recommends             cmake ninja-build gcc-16 g++-16 make pkg-config bison flex             ragel file python3 libssl-dev zlib1g-dev strace
 
       - name: Configure
         run: |
@@ -28,6 +28,15 @@ jobs:
 
       - name: Build CLI (Debug)
         run: cmake --build build --config Debug
+
+      - name: Debug strace ogrep
+        run: |
+          sudo prlimit --nofile=1048576:1048576 --pid $$ || true
+          mkdir -p /tmp/sample
+          printf 'struct foo {\n    int x;\n};\n\nclass bar {};\n\nstruct point {\n    double x, y;\n};\n' > /tmp/sample/sample.cpp
+          sudo env PATH="$PWD/build/src/Debug:$PATH" strace -f -e trace=clone,clone3,openat,getdents64,getdents,pread64,read,write,mmap,mprotect,futex ogrep '^\s*struct\s+[a-z_]+\s*{' /tmp/sample 2>strace.log || true
+          echo '===== strace tail ====='
+          tail -n 60 strace.log
 
       - name: Test built CLI
         run: |
