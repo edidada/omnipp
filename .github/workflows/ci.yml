@@ -17,19 +17,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure (musl toolchain via native-gcc-musl image)
+      - name: Install build dependencies
         run: |
-          docker run --rm -e CCACHE_DISABLE=1 -u "$(id -u):$(id -g)" \
-            -v "$PWD":"$PWD" -w "$PWD" \
-            ghcr.io/nathan-baggs/native-gcc-musl:latest \
-            cmake -B build -DCMAKE_TOOLCHAIN_FILE=linux_musl_toolchain.cmake -G "Ninja Multi-Config"
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends             cmake ninja-build gcc g++ make pkg-config bison flex             file python3 libssl-dev zlib1g-dev
+
+      - name: Configure
+        run: cmake -B build -G "Ninja Multi-Config"
 
       - name: Build CLI (Debug)
-        run: |
-          docker run --rm -e CCACHE_DISABLE=1 -u "$(id -u):$(id -g)" \
-            -v "$PWD":"$PWD" -w "$PWD" \
-            ghcr.io/nathan-baggs/native-gcc-musl:latest \
-            cmake --build build --config Debug
+        run: cmake --build build --config Debug
 
       - name: Test built CLI
         run: |
