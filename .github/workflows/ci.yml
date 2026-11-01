@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 120
     steps:
       - name: Checkout
@@ -20,14 +20,11 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends software-properties-common
-          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends             cmake ninja-build gcc-snapshot make pkg-config bison flex             ragel file python3 libssl-dev zlib1g-dev
+          sudo apt-get install -y --no-install-recommends             cmake ninja-build gcc-16 g++-16 make pkg-config bison flex             ragel file python3 libssl-dev zlib1g-dev
 
       - name: Configure
         run: |
-          cmake -B build -G "Ninja Multi-Config"             -DCMAKE_C_COMPILER=/usr/lib/gcc-snapshot/bin/gcc             -DCMAKE_CXX_COMPILER=/usr/lib/gcc-snapshot/bin/g++
+          cmake -B build -G "Ninja Multi-Config"             -DCMAKE_C_COMPILER=gcc-16 -DCMAKE_CXX_COMPILER=g++-16
 
       - name: Build CLI (Debug)
         run: cmake --build build --config Debug
