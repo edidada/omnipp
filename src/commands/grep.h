@@ -59,25 +59,13 @@ class Processor
         pending_ = 1zu;
 
         const auto hc = std::jthread::hardware_concurrency();
-        std::println(std::cerr, "DEBUG hardware_concurrency = {}", hc);
-
-        for (auto i = 0zu; i < hc - 1zu; ++i)
+        // hardware_concurrency may return zero; the caller always runs a worker.
+        for (auto i = 1u; i < hc; ++i)
         {
-            std::println("starting thread");
-            try
-            {
-                threads_.emplace_back([&] { worker(regex); });
-            }
-            catch (const std::exception &e)
-            {
-                std::println(std::cerr, "DEBUG thread create failed at {}: {}", i, e.what());
-                throw;
-            }
+            threads_.emplace_back([&] { worker(regex); });
         }
 
-        std::println(std::cerr, "DEBUG before main worker");
         worker(regex);
-        std::println(std::cerr, "DEBUG after main worker");
     }
 
   private:

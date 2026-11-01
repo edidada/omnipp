@@ -32,8 +32,7 @@ target_compile_options(omnipp_global_flags INTERFACE
   $<$<CONFIG:Debug>:-fno-omit-frame-pointer>
 )
 # Statically link the omnipp CLI by default to produce a portable single binary.
-# Some CI/containers cannot spawn threads from a fully static glibc binary
-# (clone3/pthread returns EINVAL), so allow a dynamic build via -DOMNIPP_STATIC=OFF.
+# Allow a dynamic build via -DOMNIPP_STATIC=OFF.
 option(OMNIPP_STATIC "Statically link the omnipp CLI" ON)
 
 if(OMNIPP_STATIC)

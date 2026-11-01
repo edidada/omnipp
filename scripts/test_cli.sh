@@ -12,9 +12,10 @@ fi
 echo "Using CLI: $BIN"
 
 # Sanity: empty invocation should print the tool banner.
-BANNER="$("$BIN" 2>/dev/null || true)"
+BANNER="$("$BIN")"
 if [ "$BANNER" != "omnipp" ]; then
-  echo "WARN: empty-invocation banner was '$BANNER' (expected 'omnipp')"
+  echo "FAIL: empty-invocation banner was '$BANNER' (expected 'omnipp')" >&2
+  exit 1
 fi
 
 # Prepare a sample directory with known content.

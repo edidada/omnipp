@@ -34,7 +34,7 @@ constexpr auto exe_trunk(::beman::cstring_view exe) noexcept -> ::beman::cstring
 
 constexpr auto convert_raw_args(const int argc, char **argv) noexcept
     -> std::tuple<::beman::cstring_view, std::vector<::beman::cstring_view>> //
-    pre(argc > 1)                                                            //
+    pre(argc > 0)                                                            //
     post(r : std::ranges::size(std::get<1>(r)) == static_cast<std::size_t>(argc - 1))
 {
     const auto all_argv =
@@ -66,6 +66,12 @@ auto main(int argc, char **argv) -> int
 {
     try
     {
+        if (argc == 1)
+        {
+            std::println("omnipp");
+            return 0;
+        }
+
         set_rlimit();
 
         const auto [name, args] = convert_raw_args(argc, argv);

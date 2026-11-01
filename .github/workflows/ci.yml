@@ -20,53 +20,14 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends             cmake ninja-build gcc-16 g++-16 make pkg-config bison flex             ragel file python3 libssl-dev zlib1g-dev strace
+          sudo apt-get install -y --no-install-recommends             cmake ninja-build gcc-16 g++-16 make pkg-config bison flex             ragel file python3 libssl-dev zlib1g-dev
 
       - name: Configure
         run: |
-          cmake -B build -G "Ninja Multi-Config"             -DCMAKE_C_COMPILER=gcc-16 -DCMAKE_CXX_COMPILER=g++-16             -DOMNIPP_STATIC=OFF             -DCMAKE_EXE_LINKER_FLAGS=-Wl,-z,norelro
+          cmake -B build -G "Ninja Multi-Config"             -DCMAKE_C_COMPILER=gcc-16 -DCMAKE_CXX_COMPILER=g++-16             -DOMNIPP_STATIC=OFF
 
       - name: Build CLI (Debug)
         run: cmake --build build --config Debug
-
-      - name: Debug strace ogrep
-        run: |
-          sudo prlimit --nofile=1048576:1048576 --pid $$ || true
-          mkdir -p /tmp/sample
-          printf 'struct foo {\n    int x;\n};\n\nclass bar {};\n\nstruct point {\n    double x, y;\n};\n' > /tmp/sample/sample.cpp
-          sudo env PATH="$PWD/build/src/Debug:$PATH" strace -f -e trace=clone,clone3,mmap,mprotect,rt_sigaction,rt_sigprocmask ogrep '^\s*struct\s+[a-z_]+\s*{' /tmp/sample 2>strace.log || true
-          echo '===== clone-related syscalls ====='
-          cat strace.log
-
-      - name: Debug thread smoke test
-        run: |
-          cat > /tmp/ttest.cpp <<'EOF'
-          #include <thread>
-          #include <cstdio>
-          #include <cstring>
-          #include <cerrno>
-          static void f() {}
-          int main() {
-            try {
-              std::thread t(f);
-              t.join();
-              std::printf("std::thread OK\n");
-            } catch (const std::system_error& e) {
-              std::printf("std::thread FAILED: %s (code=%d)\n", e.what(), e.code().value());
-            }
-            try {
-              std::jthread j(f);
-              std::printf("std::jthread OK\n");
-            } catch (const std::system_error& e) {
-              std::printf("std::jthread FAILED: %s (code=%d)\n", e.what(), e.code().value());
-            }
-            return 0;
-          }
-          EOF
-          g++-16 -std=c++26 /tmp/ttest.cpp -o /tmp/ttest -pthread
-          /tmp/ttest || true
-          echo '--- now as root via sudo ---'
-          sudo /tmp/ttest || true
 
       - name: Test built CLI
         run: |
