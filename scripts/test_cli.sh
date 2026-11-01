@@ -1,22 +1,12 @@
 #!/usr/bin/env bash
-# Tests the built omnipp CLI (specifically the ogrep command) by running it
-# against a small sample directory and asserting the expected matched lines.
+# Tests the 'ogrep' CLI (built from omnipp). The binary must be available on
+# PATH -- this script is intentionally independent of any build directory layout.
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "$BASH_SOURCE")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-
-# Locate the built CLI binary (musl static binary, runs fine on the host).
-BIN=""
-for candidate in "$REPO_ROOT/build/src/Debug/ogrep" "$REPO_ROOT/build/src/Debug/omnipp"; do
-  if [ -x "$candidate" ]; then
-    BIN="$candidate"
-    break
-  fi
-done
-
+# Resolve ogrep from PATH so the test is not coupled to a specific build path.
+BIN="$(command -v ogrep 2>/dev/null || true)"
 if [ -z "$BIN" ]; then
-  echo "ERROR: built CLI binary not found (looked for ogrep/omnipp in build/src/Debug)" >&2
+  echo "ERROR: 'ogrep' not found on PATH. Build it first and put it on PATH." >&2
   exit 1
 fi
 echo "Using CLI: $BIN"

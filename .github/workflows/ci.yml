@@ -19,20 +19,23 @@ jobs:
 
       - name: Configure (musl toolchain via native-gcc-musl image)
         run: |
-          docker run --rm -u "$(id -u):$(id -g)" \
+          docker run --rm -e CCACHE_DISABLE=1 -u "$(id -u):$(id -g)" \
             -v "$PWD":"$PWD" -w "$PWD" \
             ghcr.io/nathan-baggs/native-gcc-musl:latest \
             cmake -B build -DCMAKE_TOOLCHAIN_FILE=linux_musl_toolchain.cmake -G "Ninja Multi-Config"
 
       - name: Build CLI (Debug)
         run: |
-          docker run --rm -u "$(id -u):$(id -g)" \
+          docker run --rm -e CCACHE_DISABLE=1 -u "$(id -u):$(id -g)" \
             -v "$PWD":"$PWD" -w "$PWD" \
             ghcr.io/nathan-baggs/native-gcc-musl:latest \
             cmake --build build --config Debug
 
       - name: Test built CLI
-        run: ./scripts/test_cli.sh
+        run: |
+          export PATH="$PWD/build/src/Debug:$PATH"
+          command -v ogrep
+          ./scripts/test_cli.sh
 
       - name: Upload CLI artifact
         if: always()
