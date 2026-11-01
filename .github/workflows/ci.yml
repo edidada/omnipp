@@ -34,9 +34,9 @@ jobs:
           sudo prlimit --nofile=1048576:1048576 --pid $$ || true
           mkdir -p /tmp/sample
           printf 'struct foo {\n    int x;\n};\n\nclass bar {};\n\nstruct point {\n    double x, y;\n};\n' > /tmp/sample/sample.cpp
-          sudo env PATH="$PWD/build/src/Debug:$PATH" strace -f -e trace=clone,clone3,clone2 ogrep '^\s*struct\s+[a-z_]+\s*{' /tmp/sample 2>strace.log || true
+          sudo env PATH="$PWD/build/src/Debug:$PATH" strace -f -e trace=clone,clone3,mmap,mprotect,rt_sigaction,rt_sigprocmask ogrep '^\s*struct\s+[a-z_]+\s*{' /tmp/sample 2>strace.log || true
           echo '===== clone-related syscalls ====='
-          grep -nE 'clone|Invalid|= -1' strace.log | head -40
+          cat strace.log
 
       - name: Debug thread smoke test
         run: |
