@@ -32,9 +32,7 @@ jobs:
       - name: Test built CLI
         run: |
           sudo prlimit --nofile=1048576:1048576 --pid $$ || true
-          export PATH="$PWD/build/src/Debug:$PATH"
-          command -v ogrep
-          bash ./scripts/test_cli.sh
+          sudo env PATH="$PWD/build/src/Debug:$PATH" bash ./scripts/test_cli.sh
 
       - name: Upload CLI artifact
         if: always()
