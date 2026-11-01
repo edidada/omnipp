@@ -24,7 +24,7 @@ jobs:
 
       - name: Configure
         run: |
-          cmake -B build -G "Ninja Multi-Config"             -DCMAKE_C_COMPILER=gcc-16 -DCMAKE_CXX_COMPILER=g++-16             -DCMAKE_EXE_LINKER_FLAGS=-Wl,-z,norelro
+          cmake -B build -G "Ninja Multi-Config"             -DCMAKE_C_COMPILER=gcc-16 -DCMAKE_CXX_COMPILER=g++-16             -DOMNIPP_STATIC=OFF             -DCMAKE_EXE_LINKER_FLAGS=-Wl,-z,norelro
 
       - name: Build CLI (Debug)
         run: cmake --build build --config Debug
