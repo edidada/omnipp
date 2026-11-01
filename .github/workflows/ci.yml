@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [ci]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure (musl toolchain via native-gcc-musl image)
+        run: |
+          docker run --rm -u "$(id -u):$(id -g)" \
+            -v "$PWD":"$PWD" -w "$PWD" \
+            ghcr.io/nathan-baggs/native-gcc-musl:latest \
+            cmake -B build -DCMAKE_TOOLCHAIN_FILE=linux_musl_toolchain.cmake -G "Ninja Multi-Config"
+
+      - name: Build CLI (Debug)
+        run: |
+          docker run --rm -u "$(id -u):$(id -g)" \
+            -v "$PWD":"$PWD" -w "$PWD" \
+            ghcr.io/nathan-baggs/native-gcc-musl:latest \
+            cmake --build build --config Debug
+
+      - name: Test built CLI
+        run: ./scripts/test_cli.sh
+
+      - name: Upload CLI artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: omnipp-cli
+          path: |
+            build/src/Debug/omnipp
+            build/src/Debug/ogrep
+            build/src/Debug/ocat
+          if-no-files-found: warn
