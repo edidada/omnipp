@@ -58,13 +58,26 @@ class Processor
         queue_.push_back(start_dir);
         pending_ = 1zu;
 
-        for (auto i = 0zu; i < std::jthread::hardware_concurrency() - 1zu; ++i)
+        const auto hc = std::jthread::hardware_concurrency();
+        std::println(std::cerr, "DEBUG hardware_concurrency = {}", hc);
+
+        for (auto i = 0zu; i < hc - 1zu; ++i)
         {
             std::println("starting thread");
-            threads_.emplace_back([&] { worker(regex); });
+            try
+            {
+                threads_.emplace_back([&] { worker(regex); });
+            }
+            catch (const std::exception &e)
+            {
+                std::println(std::cerr, "DEBUG thread create failed at {}: {}", i, e.what());
+                throw;
+            }
         }
 
+        std::println(std::cerr, "DEBUG before main worker");
         worker(regex);
+        std::println(std::cerr, "DEBUG after main worker");
     }
 
   private:
