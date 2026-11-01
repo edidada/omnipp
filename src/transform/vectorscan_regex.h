@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <exception>
+#include <stacktrace>
 #include <expected>
 #include <memory>
 #include <print>
@@ -150,11 +151,11 @@ struct VectorScanNode
         }
         catch (const std::exception &e)
         {
-            return std::unexpected(e.what());
+            return std::unexpected(std::format("{} [{}]", e.what(), std::stacktrace::current()));
         }
         catch (...)
         {
-            return std::unexpected("unknown exception"s);
+            return std::unexpected(std::format("unknown exception [{}]", std::stacktrace::current()));
         }
     }
 
