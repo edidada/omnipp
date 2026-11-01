@@ -38,26 +38,35 @@ jobs:
           echo '===== clone-related syscalls ====='
           grep -nE 'clone|Invalid|= -1' strace.log | head -40
 
-      - name: Debug pthread smoke test
+      - name: Debug thread smoke test
         run: |
-          cat > /tmp/ptest.cpp <<'EOF'
-          #include <pthread.h>
+          cat > /tmp/ttest.cpp <<'EOF'
+          #include <thread>
           #include <cstdio>
           #include <cstring>
           #include <cerrno>
-          static void* f(void*) { return nullptr; }
+          static void f() {}
           int main() {
-            pthread_t t;
-            int r = ::pthread_create(&t, nullptr, f, nullptr);
-            std::printf("pthread_create returned %d errno=%d (%s)\n", r, errno, std::strerror(errno));
-            if (r == 0) ::pthread_join(t, nullptr);
-            return r;
+            try {
+              std::thread t(f);
+              t.join();
+              std::printf("std::thread OK\n");
+            } catch (const std::system_error& e) {
+              std::printf("std::thread FAILED: %s (code=%d)\n", e.what(), e.code().value());
+            }
+            try {
+              std::jthread j(f);
+              std::printf("std::jthread OK\n");
+            } catch (const std::system_error& e) {
+              std::printf("std::jthread FAILED: %s (code=%d)\n", e.what(), e.code().value());
+            }
+            return 0;
           }
           EOF
-          g++-16 /tmp/ptest.cpp -o /tmp/ptest -pthread
-          /tmp/ptest || true
+          g++-16 -std=c++26 /tmp/ttest.cpp -o /tmp/ttest -pthread
+          /tmp/ttest || true
           echo '--- now as root via sudo ---'
-          sudo /tmp/ptest || true
+          sudo /tmp/ttest || true
 
       - name: Test built CLI
         run: |
